@@ -3,4 +3,4 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 python3 demo/generate.py
-python3 -m mergeprint.build --raw demo/raw.json --config demo/config.json --out docs/index.html
+python3 -m mergeprint.build --raw demo/raw.json --config demo/config.json --out docs/index.html --demo

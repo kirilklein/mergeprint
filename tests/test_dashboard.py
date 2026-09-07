@@ -9,6 +9,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import xml.etree.ElementTree as ET
 
 from mergeprint import build, collect
 
@@ -98,6 +99,29 @@ class DashboardTests(unittest.TestCase):
         self.assertTrue(data["anonymized"])
         self.assertNotIn("fixture/private", page)
         self.assertNotIn("fixture/issues-only", page)
+
+    def test_demo_seo_is_opt_in(self):
+        normal, _ = self.build({})
+        demo, _ = self.build({}, ["--demo"])
+
+        self.assertNotIn('rel="canonical"', normal)
+        self.assertNotIn("OPEN-SOURCE GITHUB ANALYTICS", normal)
+        self.assertIn(
+            '<link rel="canonical" '
+            'href="https://kirilklein.github.io/mergeprint/">',
+            demo,
+        )
+        self.assertIn('<script type="application/ld+json">', demo)
+        self.assertIn("OPEN-SOURCE GITHUB ANALYTICS", demo)
+
+    def test_demo_sitemap_is_valid(self):
+        sitemap = Path(__file__).parents[1] / "docs" / "sitemap.xml"
+        root = ET.parse(sitemap).getroot()
+        namespace = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+        self.assertEqual(
+            [node.text for node in root.findall("s:url/s:loc", namespace)],
+            ["https://kirilklein.github.io/mergeprint/"],
+        )
 
     def test_event_cannot_close_inline_script(self):
         label = '</script><script>alert("fixture")</script>'
